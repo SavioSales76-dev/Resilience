@@ -34,6 +34,29 @@
     overflow-x: clip;
   }
 
+  /* Barra de rolagem nas cores da marca: polegar azul sobre trilho branco frio.
+     scrollbar-color/width: Firefox e Chrome/Edge 121+ (que então ignoram as regras
+     ::-webkit-scrollbar). ::-webkit-scrollbar: Safari e Chromium mais antigos. */
+  html {
+    scrollbar-color: var(--color-azul) var(--color-branco);
+    scrollbar-width: thin;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-branco);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-azul);
+    border: 2px solid var(--color-branco);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-preto);
+  }
+
   body {
     background: var(--color-branco);
     color: var(--color-preto);
