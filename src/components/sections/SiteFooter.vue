@@ -77,13 +77,17 @@ function onNav(event, href) {
       </div>
     </div>
 
-    <!-- "Resilience" gigante, ocupando a largura útil (TODO: trocar pelo SVG do logotipo) -->
-    <p
-      class="mt-11 font-display leading-[1.23] font-semibold tracking-[-0.02em] whitespace-nowrap select-none text-[calc((100vw-48px)*0.2085)]"
-      aria-hidden="true"
-    >
-      Resilience
-    </p>
+    <!-- "Resilience" gigante, ocupando a largura útil (TODO: trocar pelo SVG do logotipo).
+         Tamanho em cqw (largura do contêiner), não em vw: vw inclui a barra de rolagem
+         e fazia o texto passar da margem direita. -->
+    <div class="@container mt-11">
+      <p
+        class="font-display text-[20.85cqw] leading-[1.23] font-semibold tracking-[-0.02em] whitespace-nowrap select-none"
+        aria-hidden="true"
+      >
+        Resilience
+      </p>
+    </div>
 
     <!-- Barra inferior -->
     <div class="mt-6 border-t border-branco/25 pt-6 md:mt-10">

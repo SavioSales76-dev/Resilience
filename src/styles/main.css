@@ -25,6 +25,15 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Nenhuma rolagem lateral, nem por 1 px de arredondamento (ex.: Windows com escala
+     de 125%, em que a cena fixa pode ficar 1 px mais larga que a área visível).
+     clip, e não hidden: hidden transformaria o body num contêiner de rolagem e
+     quebraria o footer sticky e os pins do ScrollTrigger. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
   body {
     background: var(--color-branco);
     color: var(--color-preto);
