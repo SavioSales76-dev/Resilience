@@ -9,8 +9,12 @@
   baixas, vira um footer comum (sem o reveal).
 -->
 <script setup>
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { SplitText } from 'gsap/SplitText'
 import { site } from '../../config/site'
+import { prefersReducedMotion } from '../../composables/useSmoothScroll'
 import { goToAnchor } from '../../composables/useAnchors'
 import AppLogo from '../ui/AppLogo.vue'
 import BaseButton from '../ui/BaseButton.vue'
@@ -23,6 +27,52 @@ const topoHover = ref(false)
 function onNav(event, href) {
   if (goToAnchor(href.slice(1))) event.preventDefault()
 }
+
+gsap.registerPlugin(ScrollTrigger, SplitText)
+
+// Parallax do "Resilience" gigante: enquanto o Contato sobe e revela o footer,
+// as letras sobem de dentro de uma máscara, cada uma num ritmo (da esquerda para
+// a direita), e assentam na linha quando a página chega ao fim.
+const PARALLAX = {
+  from: 70, // yPercent inicial das letras (abaixo da linha, escondidas pela máscara)
+  stagger: 0.06, // defasagem entre letras, na escala do scroll
+}
+
+const giant = ref(null)
+let ctx
+
+onMounted(() => {
+  if (prefersReducedMotion()) return
+  document.fonts.ready.then(() => {
+    if (!giant.value) return
+    ctx = gsap.context(() => {
+      const split = SplitText.create(giant.value, { type: 'chars', aria: 'none' })
+      // Estado inicial aplicado em todas as letras de uma vez (com stagger + scrub,
+      // o fromTo só desenhava o início da primeira letra).
+      gsap.set(split.chars, { yPercent: PARALLAX.from })
+      gsap.to(
+        split.chars,
+        {
+          yPercent: 0,
+          ease: 'none',
+          stagger: PARALLAX.stagger,
+          scrollTrigger: {
+            // do momento em que o fim do Contato chega ao pé da tela (começo do
+            // reveal) até o fim da página
+            trigger: '#contato',
+            start: 'bottom bottom',
+            end: 'max',
+            scrub: 1,
+            refreshPriority: -1,
+            invalidateOnRefresh: true,
+          },
+        },
+      )
+    })
+  })
+})
+
+onBeforeUnmount(() => ctx?.revert())
 </script>
 
 <template>
@@ -80,8 +130,10 @@ function onNav(event, href) {
     <!-- "Resilience" gigante, ocupando a largura útil (TODO: trocar pelo SVG do logotipo).
          Tamanho em cqw (largura do contêiner), não em vw: vw inclui a barra de rolagem
          e fazia o texto passar da margem direita. -->
-    <div class="@container mt-11">
+    <!-- overflow-hidden: máscara de onde as letras sobem no parallax -->
+    <div class="@container mt-11 overflow-hidden">
       <p
+        ref="giant"
         class="font-display text-[20.85cqw] leading-[1.23] font-semibold tracking-[-0.02em] whitespace-nowrap select-none"
         aria-hidden="true"
       >
