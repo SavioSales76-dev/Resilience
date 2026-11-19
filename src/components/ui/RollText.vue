@@ -17,8 +17,10 @@ gsap.registerPlugin(SplitText)
 const props = defineProps({
   text: { type: String, required: true },
   active: { type: Boolean, default: undefined },
-  stagger: { type: Number, default: 0.018 }, // s entre letras
-  duration: { type: Number, default: 0.45 },
+  // atraso TOTAL distribuído entre as letras (não por letra): textos longos não ficam mais lentos
+  stagger: { type: Number, default: 0.12 },
+  duration: { type: Number, default: 0.32 }, // de cada letra
+  leaveSpeed: { type: Number, default: 1.5 }, // a volta é mais rápida que a ida
 })
 
 const root = ref(null)
@@ -27,21 +29,37 @@ const back = ref(null)
 
 let splits = []
 let host = null
-let ready = false
+let tl = null
+let pending = null // estado pedido antes do SplitText ficar pronto
+
+// Uma única timeline, criada uma vez: entrar toca para frente, sair toca de trás
+// para frente a partir do ponto exato onde parou. Assim, passar o mouse rápido
+// nunca deixa letras em posições misturadas (o que acontecia criando tweens novos
+// a cada hover).
+function build() {
+  const distance = () => root.value.offsetHeight // a cópia de baixo está exatamente a essa distância
+  const letter = {
+    y: () => -distance(),
+    duration: props.duration,
+    ease: 'power2.inOut', // simétrico: fica igual na ida e na volta
+    stagger: { amount: props.stagger },
+  }
+  tl = gsap.timeline({ paused: true })
+  tl.to(splits[0].chars, letter, 0)
+  tl.to(splits[1].chars, letter, 0)
+}
 
 function roll(on) {
-  if (!ready) return
-  const distance = root.value.offsetHeight // a cópia de baixo está exatamente a essa distância
-  for (const s of splits) {
-    gsap.to(s.chars, {
-      y: on ? -distance : 0,
-      duration: props.duration,
-      ease: 'power3.out',
-      stagger: props.stagger,
-      overwrite: true,
-    })
+  if (!tl) {
+    pending = on
+    return
   }
+  if (on) tl.timeScale(1).play()
+  else tl.timeScale(props.leaveSpeed).reverse()
 }
+
+// A altura pode mudar (fonte fluida, zoom): recalcula a distância.
+const onResize = () => tl?.invalidate()
 
 const enter = () => props.active === undefined && roll(true)
 const leave = () => props.active === undefined && roll(false)
@@ -60,8 +78,10 @@ onMounted(() => {
     splits = [front.value, back.value].map((el) =>
       SplitText.create(el, { type: 'words,chars', aria: 'none', wordsClass: 'inline-block', charsClass: 'inline-block' }),
     )
-    ready = true
+    build()
+    if (pending !== null) roll(pending)
   })
+  window.addEventListener('resize', onResize)
 
   host = root.value.closest('a, button')
   host?.addEventListener('mouseenter', enter)
@@ -75,6 +95,8 @@ onBeforeUnmount(() => {
   host?.removeEventListener('mouseleave', leave)
   host?.removeEventListener('focus', enter)
   host?.removeEventListener('blur', leave)
+  window.removeEventListener('resize', onResize)
+  tl?.kill()
   splits.forEach((s) => s.revert())
 })
 </script>
