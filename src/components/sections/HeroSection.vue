@@ -4,7 +4,7 @@ import { onMounted, onBeforeUnmount, ref } from 'vue'
 import gsap from 'gsap'
 import { site } from '../../config/site'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
-import { introEnd, introStart } from '../../composables/useIntro'
+import { introRevealed, introStart } from '../../composables/useIntro'
 import BaseButton from '../ui/BaseButton.vue'
 import VArrowField from '../ui/VArrowField.vue'
 
@@ -97,17 +97,17 @@ onMounted(() => {
     )
     introStart.then(() => intro.play())
 
-    // Título e rodapé: só entram depois que o loader expandiu 100% e saiu da tela.
+    // Título e rodapé: entram assim que a janela do loader cobre a tela inteira.
     const text = gsap.from('[data-intro]', {
       opacity: 0,
-      y: 48,
-      duration: 1.1,
+      y: 32,
+      duration: 0.8,
       ease: 'power3.out',
-      stagger: 0.12,
+      stagger: 0.08,
       paused: true,
       clearProps: 'opacity,transform',
     })
-    introEnd.then(() => text.play())
+    introRevealed.then(() => text.play())
   }, root.value)
 
   gsap.ticker.add(tick)
