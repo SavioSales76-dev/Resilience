@@ -8,10 +8,20 @@ gsap.registerPlugin(ScrollTrigger)
 
 let lenisInstance = null
 
+// Curva com começo e fim bem suaves (easeInOutCubic).
+const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
+
 // Rola até uma posição: suave com Lenis, nativo sem ele.
+// A duração cresce com a distância (1,2 s a 3,2 s): voltar do footer ao topo
+// atravessa a página inteira e as cenas fixas, e rápido demais parece um corte.
 export function scrollToY(y) {
-  if (lenisInstance) lenisInstance.scrollTo(y, { duration: 1.6 })
-  else window.scrollTo({ top: y, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+  if (lenisInstance) {
+    const distance = Math.abs(y - lenisInstance.scroll)
+    const duration = gsap.utils.clamp(1.2, 3.2, 0.9 + distance / 5000)
+    lenisInstance.scrollTo(y, { duration, easing: easeInOutCubic })
+  } else {
+    window.scrollTo({ top: y, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+  }
 }
 
 export const prefersReducedMotion = () =>
@@ -33,6 +43,7 @@ export function useSmoothScroll() {
     if (!prefersReducedMotion() && !isTouch) {
       lenis = new Lenis({ lerp: 0.1 })
       lenisInstance = lenis
+      if (import.meta.env.DEV) window.__lenis = lenis // só para testes no navegador
       lenis.on('scroll', ScrollTrigger.update)
       tick = (time) => lenis.raf(time * 1000)
       gsap.ticker.add(tick)
