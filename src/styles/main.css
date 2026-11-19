@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/* Tokens da marca (Figma, coleção "Cores").
+   A paleta padrão do Tailwind é desligada: vermelho, verde e amarelo são vetados. */
+@theme {
+  --color-*: initial;
+  --color-azul: #3d3bf3;
+  --color-preto: #080812;
+  --color-branco: #f4f4fa;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-*: initial;
+  --font-display: "Clash Display", system-ui, sans-serif;
+  --font-sans: "General Sans", system-ui, sans-serif;
+
+  --spacing-gutter: 24px;
+  --radius-btn: 4px;
+  --radius-icon: 3px;
+  --radius-card: 16px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--color-branco);
+    color: var(--color-preto);
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-azul);
+    outline-offset: 3px;
+  }
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
