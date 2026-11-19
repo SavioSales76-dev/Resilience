@@ -51,3 +51,28 @@ html.lenis body {
 .lenis.lenis-stopped {
   overflow: hidden;
 }
+
+/* Estilos de texto (Figma, "Site/…"). letter-spacing em em. */
+@utility text-hero {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(44px, 6.25vw, 90px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+@utility text-corpo {
+  font-size: clamp(16px, 1.25vw, 18px);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+}
+@utility text-nav {
+  font-size: 14px;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+@utility text-botao {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}

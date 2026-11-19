@@ -7,7 +7,7 @@ Landing page da Resilience, agência de marketing focada em gestão de redes soc
 - [Vue 3](https://vuejs.org/) + [Vite](https://vite.dev/)
 - [Tailwind CSS 4](https://tailwindcss.com/) com os tokens da marca em `src/styles/main.css`
 - [GSAP](https://gsap.com/) (`ScrollTrigger`, `SplitText`) e [Lenis](https://lenis.darkroom.engineering/) para o scroll suave
-- Ícones: `lucide-vue-next`
+- Ícones: [Lucide Animated](https://lucide-animated.com/) portados para Vue com [motion-v](https://motion.dev/docs/vue) em `src/components/icons/` (a biblioteca original é só React)
 
 ## Scripts
 

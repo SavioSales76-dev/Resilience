@@ -1,9 +1,17 @@
 <script setup>
+import { MotionConfig } from 'motion-v'
 import { useSmoothScroll } from './composables/useSmoothScroll'
+import SiteHeader from './components/sections/SiteHeader.vue'
+import HeroSection from './components/sections/HeroSection.vue'
 
 useSmoothScroll()
 </script>
 
 <template>
-  <main id="inicio" class="min-h-svh px-gutter"></main>
+  <MotionConfig reduced-motion="user">
+    <SiteHeader />
+    <main>
+      <HeroSection />
+    </main>
+  </MotionConfig>
 </template>

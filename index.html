@@ -15,7 +15,9 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!-- TODO(perf): trocar por woff2 servidos localmente -->
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
-    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&f[]=general-sans@400,500&display=swap" />
+    <!-- Um link por família: com as duas no mesmo link, o Fontshare devolve só a primeira. -->
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&display=swap" />
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500&display=swap" />
   </head>
   <body>
     <div id="app"></div>
