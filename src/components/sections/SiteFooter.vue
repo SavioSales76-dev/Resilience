@@ -77,6 +77,7 @@ onBeforeUnmount(() => ctx?.revert())
 
 <template>
   <footer
+    data-header-tema="escuro"
     class="relative z-0 -mt-[16.2vw] bg-azul px-gutter pt-[calc(16.2vw+64px)] pb-6 text-branco md:pt-[calc(16.2vw+96px)] [@media(min-width:768px)_and_(min-height:740px)]:sticky [@media(min-width:768px)_and_(min-height:740px)]:bottom-0"
   >
     <!-- Topo: marca, colunas e botão -->

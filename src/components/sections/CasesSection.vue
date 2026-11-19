@@ -121,7 +121,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="cases" ref="root" aria-labelledby="cases-titulo" class="relative z-30 -mt-px text-branco">
+  <section id="cases" ref="root" data-header-tema="escuro" aria-labelledby="cases-titulo" class="relative z-30 -mt-px text-branco">
     <!-- -mt-px: sobrepõe 1 px ao fim azul da cena acima, para não aparecer linha na emenda -->
     <div class="bg-azul px-gutter pt-[clamp(96px,11.2vw,161px)] pb-[clamp(96px,11vw,160px)]">
       <header class="mx-auto flex max-w-[1100px] flex-col gap-8 text-center">
