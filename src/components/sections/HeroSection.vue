@@ -9,9 +9,9 @@ import BaseButton from '../ui/BaseButton.vue'
 import VArrowField from '../ui/VArrowField.vue'
 
 // V-arrows voando atrás do gráfico (não está no Figma da hero; mesmo pattern do Contato).
-// x: centro em %, y: topo em % (posição mais baixa; elas sobem a partir daí),
-// w: largura em 1440, o: opacidade. As de cima começam baixas o bastante
-// para não subir por trás do header.
+// Nascem abaixo da hero, saem de trás das colunas e sobem até sair da tela.
+// x: centro em %, w: largura em 1440, o: opacidade,
+// y: topo em % só para a posição parada com movimento reduzido.
 const desktopArrows = [
   { x: 6.5, y: 26, w: 96, o: 1 },
   { x: 9, y: 56, w: 40, o: 0.35 },
@@ -22,7 +22,7 @@ const desktopArrows = [
   { x: 95, y: 62, w: 72, o: 0.7 },
   { x: 86, y: 82, w: 36, o: 0.3 },
 ]
-// Mobile: no máximo 4, menores, nas bordas e longe do título.
+// Mobile: no máximo 4, menores e nas bordas.
 const mobileArrows = [
   // (larguras maiores aqui porque o tamanho mínimo é 55% de w)
   { x: 12, y: 24, w: 80, o: 1 },
@@ -111,10 +111,10 @@ onBeforeUnmount(() => ctx?.revert())
 
     <!-- Gráfico de colunas -->
     <div class="pointer-events-none absolute inset-0 -z-10 hidden grid-cols-7 items-end md:grid" aria-hidden="true">
-      <div v-for="(h, i) in desktopBars" :key="i" :data-h="h" :data-i="i" data-bar class="border border-preto/12" :style="{ height: `${h}%` }" />
+      <div v-for="(h, i) in desktopBars" :key="i" :data-h="h" :data-i="i" data-bar class="border border-preto/12 bg-branco" :style="{ height: `${h}%` }" />
     </div>
     <div class="pointer-events-none absolute inset-0 -z-10 grid grid-cols-5 items-end md:hidden" aria-hidden="true">
-      <div v-for="(h, i) in mobileBars" :key="i" :data-h="h" :data-i="i" data-bar class="border border-preto/12" :style="{ height: `${h}%` }" />
+      <div v-for="(h, i) in mobileBars" :key="i" :data-h="h" :data-i="i" data-bar class="border border-preto/12 bg-branco" :style="{ height: `${h}%` }" />
     </div>
 
     <h1
