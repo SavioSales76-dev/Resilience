@@ -5,7 +5,8 @@
      que já está parado embaixo dela.
   3. Text scroll: as palavras do Manifesto passam de cinza para preto, na ordem
      de leitura; "voltar mais forte" vira azul.
-  TODO (seção de Cases): o símbolo crescendo até a tela ficar azul entra no fim desta cena.
+  4. O símbolo azul aparece no centro e cresce até a tela ficar azul, com o texto
+     branco dentro dele. O fim da cena (tela toda azul) emenda com o início dos Cases.
 
   Com prefers-reduced-motion: sem pin; hero e Manifesto ficam um embaixo do outro.
 -->
@@ -26,9 +27,11 @@ const PHASES = {
   grow: 1.1, // colunas crescendo
   exit: 1.0, // hero subindo e saindo
   text: 1.6, // text scroll
-  hold: 0.3, // respiro no fim, com o texto completo
+  read: 0.4, // respiro com o texto completo
+  symbol: 2.2, // símbolo crescendo até a tela ficar azul
+  hold: 0.2, // tela azul antes de liberar
 }
-const TOTAL = PHASES.grow + PHASES.exit + PHASES.text + PHASES.hold
+const TOTAL = Object.values(PHASES).reduce((a, b) => a + b, 0)
 
 const animated = !prefersReducedMotion()
 const scene = ref(null)
@@ -50,6 +53,7 @@ onMounted(() => {
       const words = manifesto.value.getWords()
       const exitStart = PHASES.grow
       const textStart = PHASES.grow + PHASES.exit
+      const symbolStart = textStart + PHASES.text + PHASES.read
 
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
@@ -97,6 +101,9 @@ onMounted(() => {
         },
         textStart,
       )
+
+      // 4. Símbolo crescendo até a tela ficar azul.
+      tl.add(manifesto.value.buildSymbol().duration(PHASES.symbol), symbolStart)
       tl.to({}, { duration: PHASES.hold })
 
       // Link "Sobre" do menu: leva ao ponto em que o Manifesto acabou de ser revelado.

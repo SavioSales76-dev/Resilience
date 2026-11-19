@@ -26,13 +26,16 @@ export function useSmoothScroll() {
   onMounted(() => {
     const isTouch = window.matchMedia('(pointer: coarse)').matches
 
+    // Animações em tempo real mesmo quando o aparelho perde quadros (loader,
+    // sincronia com o Lenis). Sem isso, num celular lento o loader se arrasta.
+    gsap.ticker.lagSmoothing(0)
+
     if (!prefersReducedMotion() && !isTouch) {
       lenis = new Lenis({ lerp: 0.1 })
       lenisInstance = lenis
       lenis.on('scroll', ScrollTrigger.update)
       tick = (time) => lenis.raf(time * 1000)
       gsap.ticker.add(tick)
-      gsap.ticker.lagSmoothing(0)
       // Sem rolagem enquanto o loader estiver na tela.
       if (!isIntroEnded()) {
         lenis.stop()
