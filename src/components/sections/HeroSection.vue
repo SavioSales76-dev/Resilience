@@ -6,6 +6,30 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { site } from '../../config/site'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
 import BaseButton from '../ui/BaseButton.vue'
+import VArrowField from '../ui/VArrowField.vue'
+
+// V-arrows voando atrás do gráfico (não está no Figma da hero; mesmo pattern do Contato).
+// x: centro em %, y: topo em % (posição mais baixa; elas sobem a partir daí),
+// w: largura em 1440, o: opacidade. As de cima começam baixas o bastante
+// para não subir por trás do header.
+const desktopArrows = [
+  { x: 6.5, y: 26, w: 96, o: 1 },
+  { x: 9, y: 56, w: 40, o: 0.35 },
+  { x: 17, y: 62, w: 56, o: 0.55 },
+  { x: 24, y: 30, w: 34, o: 0.3 },
+  { x: 91, y: 26, w: 112, o: 1 },
+  { x: 80, y: 66, w: 50, o: 0.5 },
+  { x: 95, y: 62, w: 72, o: 0.7 },
+  { x: 86, y: 82, w: 36, o: 0.3 },
+]
+// Mobile: no máximo 4, menores, nas bordas e longe do título.
+const mobileArrows = [
+  // (larguras maiores aqui porque o tamanho mínimo é 55% de w)
+  { x: 12, y: 24, w: 80, o: 1 },
+  { x: 88, y: 22, w: 96, o: 0.8 },
+  { x: 84, y: 46, w: 56, o: 0.45 },
+  { x: 18, y: 46, w: 56, o: 0.35 },
+]
 
 // Alturas em % da hero. Cai na 2ª coluna e depois só cresce.
 const desktopBars = [34, 21, 36, 46, 55, 64, 72]
@@ -81,6 +105,10 @@ onBeforeUnmount(() => ctx?.revert())
     aria-labelledby="hero-titulo"
     class="relative isolate flex min-h-[640px] h-svh flex-col overflow-hidden px-gutter"
   >
+    <!-- V-arrows: camada mais ao fundo, atrás das colunas -->
+    <VArrowField :arrows="desktopArrows" class="-z-20 hidden md:block" />
+    <VArrowField :arrows="mobileArrows" class="-z-20 md:hidden" />
+
     <!-- Gráfico de colunas -->
     <div class="pointer-events-none absolute inset-0 -z-10 hidden grid-cols-7 items-end md:grid" aria-hidden="true">
       <div v-for="(h, i) in desktopBars" :key="i" :data-h="h" :data-i="i" data-bar class="border border-preto/12" :style="{ height: `${h}%` }" />
