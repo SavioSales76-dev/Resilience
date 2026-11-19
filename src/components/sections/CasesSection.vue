@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
     <!-- Ponta da peça de baixo do símbolo (Figma: "Fundo / ponta do símbolo", src/assets/cases-ponta.svg).
          Fica uma camada acima da próxima seção, que deve entrar por baixo dela. -->
     <svg
-      class="block h-[16.2vw] w-full fill-azul"
+      class="-mt-px block h-[16.2vw] w-full fill-azul"
       viewBox="0 0 1440 233.3"
       preserveAspectRatio="none"
       aria-hidden="true"

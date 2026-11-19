@@ -104,3 +104,10 @@ html.lenis body {
   line-height: 1.4;
   letter-spacing: 0.04em;
 }
+
+/* Site/Nav (16 px): links do footer */
+@utility text-nav-footer {
+  font-size: 16px;
+  line-height: 1;
+  letter-spacing: -0.005em;
+}

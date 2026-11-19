@@ -5,6 +5,7 @@ import IntroScene from './components/sections/IntroScene.vue'
 import SiteLoader from './components/sections/SiteLoader.vue'
 import CasesSection from './components/sections/CasesSection.vue'
 import ContatoSection from './components/sections/ContatoSection.vue'
+import SiteFooter from './components/sections/SiteFooter.vue'
 
 useSmoothScroll()
 </script>
@@ -18,5 +19,6 @@ useSmoothScroll()
       <CasesSection />
       <ContatoSection />
     </main>
+    <SiteFooter />
   </MotionConfig>
 </template>

@@ -122,7 +122,7 @@ onBeforeUnmount(() => ctx?.revert())
 
     <!-- Ponta em V branca (mesma geometria dos Cases), por cima do footer -->
     <svg
-      class="block h-[16.2vw] w-full fill-branco"
+      class="-mt-px block h-[16.2vw] w-full fill-branco"
       viewBox="0 0 1440 233.3"
       preserveAspectRatio="none"
       aria-hidden="true"

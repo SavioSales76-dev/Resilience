@@ -7,6 +7,7 @@ export const site = {
   instagramUrl: 'https://instagram.com/resilience', // TODO: @ real
   instagramHandle: '@resilience', // TODO
   phoneLabel: '(00) 00000-0000', // TODO
+  atuacao: ['Atendimento regional', 'Seg. a sex., horário comercial'], // TODO: provisório
   nav: [
     { label: 'Início', href: '#inicio' },
     { label: 'Sobre', href: '#sobre' },
