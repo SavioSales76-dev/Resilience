@@ -1,7 +1,9 @@
 <!--
   Figma: prototype → "Landing / Footer — desktop" (113:66); nota 109:134 (reveal).
-  Reveal: o footer fica grudado no fim da tela (sticky bottom), uma camada abaixo de
-  tudo (-z-10), e o Contato sobe por cima dele, descobrindo-o. A ponta em V branca do
+  Reveal: o footer fica grudado no fim da tela (sticky bottom), uma camada abaixo do
+  <main> (o main tem z-10 no App), e o Contato sobe por cima dele, descobrindo-o.
+  Não usar z-index negativo aqui: o footer ficaria abaixo do #app e não receberia
+  hover nem clique. A ponta em V branca do
   Contato cobre o topo do footer (-mt de 16,2vw), por isso o conteúdo começa abaixo dela.
   Só com tela larga e alta o bastante para o footer caber: no celular e em telas
   baixas, vira um footer comum (sem o reveal).
@@ -25,7 +27,7 @@ function onNav(event, href) {
 
 <template>
   <footer
-    class="relative -z-10 -mt-[16.2vw] bg-azul px-gutter pt-[calc(16.2vw+64px)] pb-6 text-branco md:pt-[calc(16.2vw+96px)] [@media(min-width:768px)_and_(min-height:740px)]:sticky [@media(min-width:768px)_and_(min-height:740px)]:bottom-0"
+    class="relative z-0 -mt-[16.2vw] bg-azul px-gutter pt-[calc(16.2vw+64px)] pb-6 text-branco md:pt-[calc(16.2vw+96px)] [@media(min-width:768px)_and_(min-height:740px)]:sticky [@media(min-width:768px)_and_(min-height:740px)]:bottom-0"
   >
     <!-- Topo: marca, colunas e botão -->
     <div class="flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between lg:gap-8">

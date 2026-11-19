@@ -13,7 +13,8 @@ useSmoothScroll()
 <template>
   <MotionConfig reduced-motion="user">
     <SiteLoader />
-    <main>
+    <!-- z-10: o main fica acima do footer (reveal), sem tirar o footer do alcance do mouse -->
+    <main class="relative z-10">
       <!-- header, hero e Manifesto: cena fixa ligada ao scroll -->
       <IntroScene />
       <CasesSection />
