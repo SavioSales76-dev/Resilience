@@ -19,8 +19,9 @@ const props = defineProps({
   arrows: { type: Array, required: true },
   // velocidade em px/s da menor (34px) e da maior (112px): as maiores, mais "perto", sobem mais rápido
   speed: { type: Array, default: () => [45, 110] },
-  // quantas cópias do rastro ficam visíveis ao mesmo tempo
-  trailLength: { type: Number, default: 4 },
+  // quantas cópias do rastro ficam visíveis ao mesmo tempo.
+  // Comprimento do rastro ≈ trailLength × TRAIL_SPACING alturas (14 × 0.15 ≈ 2,1).
+  trailLength: { type: Number, default: 14 },
 })
 
 const MAIN = V_ARROW_PATHS[0]
@@ -28,8 +29,11 @@ const MAIN = V_ARROW_PATHS[0]
 const STATIC_TRAIL = V_ARROW_PATHS.slice(1)
 // Altura da peça (sem rastro) no viewBox de 112 de largura.
 const ARROW_HEIGHT_UNITS = 56
-const TRAIL_SPACING = 0.95 // × altura da v-arrow, como no Figma
-const TRAIL_START_OPACITY = 0.32 // 1ª cópia do Figma
+// × altura da v-arrow. Pequeno = rastro denso e contínuo (as cópias se sobrepõem).
+const TRAIL_SPACING = 0.15
+// Opacidade de cada cópia ao nascer. Baixa porque, com o rastro denso,
+// várias cópias se sobrepõem e as opacidades se somam.
+const TRAIL_START_OPACITY = 0.12
 const TRAIL_END_SCALE = 0.86 ** 4 // encolhe como a 4ª cópia do Figma
 
 const root = ref(null)
@@ -65,17 +69,24 @@ function build() {
       // Cada cópia vive o tempo de a v-arrow andar `trailLength` espaçamentos.
       const ghostLife = ((TRAIL_SPACING * arrowPx) / speed) * props.trailLength
 
+      const speedUnits = speed * unitsPerPx // unidades do viewBox por segundo
+
       // Solta uma cópia na posição `y`; as cópias se revezam num pool.
+      // `age`: há quanto tempo a v-arrow passou por ali. Se o navegador perder
+      // quadros e várias cópias nascerem juntas, cada uma já começa com a
+      // idade certa e o degradê do rastro não se quebra.
       let next = 0
-      const spawnAt = (y) => {
+      const spawnAt = (y, age) => {
         const ghost = ghosts[next]
         next = (next + 1) % ghosts.length
         gsap.killTweensOf(ghost)
-        gsap.fromTo(
-          ghost,
-          { y, opacity: TRAIL_START_OPACITY, scale: 1, transformOrigin: '50% 0%' },
-          { opacity: 0, scale: TRAIL_END_SCALE, duration: ghostLife, ease: 'power1.out' },
-        )
+        gsap
+          .fromTo(
+            ghost,
+            { y, opacity: TRAIL_START_OPACITY, scale: 1, transformOrigin: '50% 0%' },
+            { opacity: 0, scale: TRAIL_END_SCALE, duration: ghostLife, ease: 'power1.out' },
+          )
+          .time(Math.min(age, ghostLife))
       }
 
       // Solta por distância percorrida (não por tempo): o espaçamento fica
@@ -94,7 +105,7 @@ function build() {
             if (lastY === null || y > lastY) lastY = y // início ou recomeço do loop
             while (lastY - y >= spacingUnits) {
               lastY -= spacingUnits
-              spawnAt(lastY)
+              spawnAt(lastY, (lastY - y) / speedUnits)
             }
           },
         },
