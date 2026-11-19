@@ -83,3 +83,24 @@ html.lenis body {
   line-height: 1.18;
   letter-spacing: -0.02em;
 }
+
+@utility text-h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(40px, 5.6vw, 80px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+@utility text-h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(24px, 2.2vw, 32px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+/* Site/Mono Label: rótulos, etiquetas, legendas */
+@utility text-label {
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}

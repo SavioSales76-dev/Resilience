@@ -44,6 +44,9 @@ export function useSmoothScroll() {
     }
 
     document.fonts.ready.then(() => ScrollTrigger.refresh())
+    // O loader trava a rolagem (sem barra de rolagem: página 15 px mais larga).
+    // Quando ele sai, a barra volta: recalcula pins e tamanhos com a largura real.
+    introEnd.then(() => requestAnimationFrame(() => ScrollTrigger.refresh()))
   })
 
   onBeforeUnmount(() => {

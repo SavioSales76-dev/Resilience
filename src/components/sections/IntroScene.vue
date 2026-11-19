@@ -70,12 +70,14 @@ onMounted(() => {
       })
 
       // 1. Título e rodapé saem; colunas crescem até cobrir a tela.
-      // (fromTo + immediateRender: false para não brigar com a entrada da hero)
+      // Não brigar com a entrada da hero (título escondido até o loader sair):
+      // fromTo + immediateRender: false e posição 0.01 (não 0). No 0, a cena desenharia
+      // o estado inicial "visível" já ao ser montada, com a rolagem parada no topo.
       tl.fromTo(
         intros,
         { y: 0, opacity: 1 },
         { y: -80, opacity: 0, duration: 0.45, ease: 'power1.in', stagger: 0.06, immediateRender: false },
-        0,
+        0.01,
       )
       tl.to(
         bars,

@@ -11,4 +11,11 @@ export const site = {
     { label: 'Cases', href: '#cases' },
     { label: 'Contato', href: '#contato' },
   ],
+  // TODO: os 3 cases reais. Imagem 16:9, mín. 2880 × 1620, assunto centralizado
+  // com área segura de ~4:3; `image: null` mostra o placeholder do Figma.
+  cases: [
+    { name: 'Cliente 01', segment: 'Segmento', image: null, href: '#' },
+    { name: 'Cliente 02', segment: 'Segmento', image: null, href: '#' },
+    { name: 'Cliente 03', segment: 'Segmento', image: null, href: '#' },
+  ],
 }

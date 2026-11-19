@@ -4,7 +4,7 @@ import { onMounted, onBeforeUnmount, ref } from 'vue'
 import gsap from 'gsap'
 import { site } from '../../config/site'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
-import { introStart } from '../../composables/useIntro'
+import { introEnd, introStart } from '../../composables/useIntro'
 import BaseButton from '../ui/BaseButton.vue'
 import VArrowField from '../ui/VArrowField.vue'
 
@@ -79,7 +79,8 @@ onMounted(() => {
   }
 
   ctx = gsap.context(() => {
-    // Entrada: começa quando o símbolo do loader começa a expandir.
+    // Entrada das colunas: começa quando o símbolo do loader começa a expandir
+    // (elas sobem dentro da "janela" do símbolo).
     const intro = gsap.timeline({ paused: true })
     // Colunas: revelam de baixo para cima com clip-path (não distorce a borda de 1px).
     intro.from(
@@ -94,13 +95,19 @@ onMounted(() => {
       },
       0.3,
     )
-    // Título e rodapé da hero sobem com fade.
-    intro.from(
-      '[data-intro]',
-      { opacity: 0, y: 48, duration: 1.1, ease: 'power3.out', stagger: 0.12, clearProps: 'opacity,transform' },
-      0.5,
-    )
     introStart.then(() => intro.play())
+
+    // Título e rodapé: só entram depois que o loader expandiu 100% e saiu da tela.
+    const text = gsap.from('[data-intro]', {
+      opacity: 0,
+      y: 48,
+      duration: 1.1,
+      ease: 'power3.out',
+      stagger: 0.12,
+      paused: true,
+      clearProps: 'opacity,transform',
+    })
+    introEnd.then(() => text.play())
   }, root.value)
 
   gsap.ticker.add(tick)

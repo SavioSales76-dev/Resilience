@@ -3,7 +3,7 @@
 import { onMounted, ref } from 'vue'
 import gsap from 'gsap'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
-import { introStart } from '../../composables/useIntro'
+import { introEnd } from '../../composables/useIntro'
 import { goToAnchor } from '../../composables/useAnchors'
 import { site } from '../../config/site'
 import AppLogo from '../ui/AppLogo.vue'
@@ -24,8 +24,9 @@ const nav = ref(null)
 // Entrada junto com a hero, quando o loader começa a expandir.
 onMounted(() => {
   if (prefersReducedMotion()) return
-  const tween = gsap.from(nav.value, { opacity: 0, y: -16, duration: 0.9, ease: 'power3.out', delay: 0.7, paused: true, clearProps: 'opacity,transform' })
-  introStart.then(() => tween.restart(true)) // true: respeita o delay
+  // Entra junto com o título da hero, depois que o loader expandiu 100%.
+  const tween = gsap.from(nav.value, { opacity: 0, y: -16, duration: 0.9, ease: 'power3.out', delay: 0.15, paused: true, clearProps: 'opacity,transform' })
+  introEnd.then(() => tween.restart(true)) // true: respeita o delay
 })
 </script>
 

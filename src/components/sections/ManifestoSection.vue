@@ -72,6 +72,9 @@ function buildSymbol() {
   tl.fromTo(state, { s: 0.0001 }, { s: () => layout().s0, duration: 0.25, ease: 'back.out(1.6)', onUpdate: update })
   // ...e cresce até cobrir a tela; acelera no fim (power3.in)
   tl.to(state, { s: () => layout().s1, duration: 1.75, ease: 'power3.in', onUpdate: update })
+  // Coberta a tela, o fundo da seção vira azul: nenhuma borda de 1 px escapa na
+  // emenda com os Cases (o símbolo gigante tem antialias nas bordas).
+  tl.set(root.value, { backgroundColor: COR_DESTAQUE })
   return tl
 }
 
