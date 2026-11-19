@@ -3,6 +3,7 @@
 import { computed, ref } from 'vue'
 import ArrowUpRightIcon from '../icons/ArrowUpRightIcon.vue'
 import MessageCircleIcon from '../icons/MessageCircleIcon.vue'
+import RollText from './RollText.vue'
 
 const props = defineProps({
   href: { type: String, required: true },
@@ -33,7 +34,7 @@ const icon = computed(() => (props.tipo === 'whatsapp' ? MessageCircleIcon : Arr
     @focus="hovered = true"
     @blur="hovered = false"
   >
-    <span v-if="!compacto" class="text-botao whitespace-nowrap">{{ label }}</span>
+    <RollText v-if="!compacto" :text="label" :active="hovered" class="text-botao" />
     <span
       class="flex size-8 items-center justify-center overflow-hidden rounded-icon bg-azul text-branco transition-transform duration-200 group-hover:scale-108"
     >

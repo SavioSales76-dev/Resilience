@@ -10,6 +10,7 @@ import BaseButton from '../ui/BaseButton.vue'
 import IconButton from '../ui/IconButton.vue'
 import InstagramIcon from '../icons/InstagramIcon.vue'
 import MenuIcon from '../icons/MenuIcon.vue'
+import RollText from '../ui/RollText.vue'
 
 const menuOpen = ref(false)
 const nav = ref(null)
@@ -34,7 +35,7 @@ onMounted(() => {
             class="text-nav text-preto/70 transition-colors hover:text-preto"
             :class="{ 'font-medium text-preto': i === 0 }"
             :aria-current="i === 0 ? 'page' : undefined"
-          >{{ item.label }}</a>
+          ><RollText :text="item.label" /></a>
         </li>
       </ul>
 
