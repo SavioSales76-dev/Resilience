@@ -2,7 +2,6 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { site } from '../../config/site'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
 import { introStart } from '../../composables/useIntro'
@@ -49,26 +48,33 @@ const WAVE = {
   rampIn: 1.2, // segundos para a onda atingir a amplitude total
 }
 
+// Colunas: `grow` (0–1) é controlado pela IntroScene no scroll; 1 = altura da tela toda.
+let bars = []
+let ticking = true // a IntroScene desliga quando a hero já saiu da tela
+
 onMounted(() => {
   if (prefersReducedMotion()) return
 
-  const bars = [...root.value.querySelectorAll('[data-bar]')].map((el) => ({
+  bars = [...root.value.querySelectorAll('[data-bar]')].map((el) => ({
     el,
     base: Number(el.dataset.h),
     index: Number(el.dataset.i),
+    grow: 0,
   }))
 
-  let visible = true
   let waveStart = null
 
   const tick = (time) => {
-    if (!visible || waveStart === null) return
-    const t = time - waveStart
-    const amp = WAVE.amplitude * Math.min(1, t / WAVE.rampIn)
+    if (!ticking) return
+    const growing = bars.some((b) => b.grow > 0)
+    if (waveStart === null && !growing) return // antes da entrada: alturas do CSS
+    const t = waveStart === null ? 0 : time - waveStart
+    const amp = waveStart === null ? 0 : WAVE.amplitude * Math.min(1, t / WAVE.rampIn)
     const w = (2 * Math.PI) / WAVE.period
-    for (const { el, base, index } of bars) {
+    for (const { el, base, index, grow } of bars) {
       // seno começa em 0: entra na onda sem salto
-      el.style.height = `${base + amp * Math.sin(w * t - index * WAVE.phase)}%`
+      const wave = base + amp * Math.sin(w * t - index * WAVE.phase)
+      el.style.height = `${wave + (100 - wave) * grow}%`
     }
   }
 
@@ -95,14 +101,6 @@ onMounted(() => {
       0.5,
     )
     introStart.then(() => intro.play())
-
-    // Só anima enquanto a hero está na tela.
-    ScrollTrigger.create({
-      trigger: root.value,
-      start: 'top bottom',
-      end: 'bottom top',
-      onToggle: (self) => (visible = self.isActive),
-    })
   }, root.value)
 
   gsap.ticker.add(tick)
@@ -110,6 +108,12 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => ctx?.revert())
+
+defineExpose({
+  root,
+  getBars: () => bars,
+  setTicking: (on) => (ticking = on),
+})
 </script>
 
 <template>
@@ -117,7 +121,7 @@ onBeforeUnmount(() => ctx?.revert())
     id="inicio"
     ref="root"
     aria-labelledby="hero-titulo"
-    class="relative isolate flex min-h-[640px] h-svh flex-col overflow-hidden px-gutter"
+    class="relative isolate flex min-h-[640px] h-svh flex-col overflow-hidden bg-branco px-gutter"
   >
     <!-- V-arrows: camada mais ao fundo, atrás das colunas -->
     <VArrowField :arrows="desktopArrows" class="-z-20 hidden md:block" />

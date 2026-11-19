@@ -11,19 +11,11 @@ import { onMounted, onBeforeUnmount, ref } from 'vue'
 import gsap from 'gsap'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
 import { endIntro, startIntro } from '../../composables/useIntro'
+import { SYMBOL_BOX, SYMBOL_PATHS, symbolLayout, symbolTransform } from '../ui/symbolGeometry'
 
-// Paths do asset do Figma (src/assets/loader.svg), em coordenadas do frame 1440 × 900.
-const PATHS = [
-  'M668.696 492.111L537.623 444.354C536.127 443.808 534.624 445.147 534.993 446.696L565.46 574.621C565.622 575.299 566.125 575.845 566.788 576.06L719.882 625.799C720.284 625.93 720.716 625.93 721.118 625.799L874.212 576.06C874.875 575.845 875.378 575.299 875.54 574.621L906.007 446.696C906.376 445.147 904.873 443.808 903.377 444.354L772.304 492.111L721.228 512.06C720.76 512.243 720.24 512.243 719.772 512.06L668.696 492.111Z',
-  'M659.764 333.857L505.544 274.367C504.042 273.788 502.506 275.129 502.878 276.695L538.779 427.812C538.938 428.479 539.427 429.019 540.075 429.241L719.85 490.995C720.271 491.14 720.729 491.14 721.15 490.995L900.925 429.241C901.573 429.019 902.062 428.479 902.221 427.812L938.122 276.695C938.494 275.129 936.958 273.788 935.456 274.367L781.236 333.857L721.229 357.352C720.76 357.535 720.24 357.535 719.771 357.352L659.764 333.857Z',
-]
-// Caixa do símbolo no frame.
-const BOX = { x: 502.5, y: 273.5, w: 436, h: 353 }
-// Centro da peça de cima (origem da expansão), relativo à caixa.
-const ORIGIN = { x: 720.5 - BOX.x, y: 424.2 - BOX.y }
-// Geometria da peça de cima, para calcular quanto escalar até cobrir a tela.
-const HALF_THICKNESS = 66.8 // da origem até o V de cima / de baixo
-const BOTTOM_SLOPE = 0.342 // a borda de baixo sobe em direção às laterais
+// Geometria compartilhada com a transição Manifesto → Cases.
+const PATHS = SYMBOL_PATHS
+const BOX = SYMBOL_BOX
 
 const FILL_EMPTY_OPACITY = 0.16 // símbolo "vazio"
 const MIN_FILL_TIME = 1.3 // s: tempo mínimo enchendo, mesmo se a página carregar antes
@@ -38,19 +30,11 @@ let tl
 function layout() {
   const W = window.innerWidth
   const H = window.innerHeight
-  const s0 = gsap.utils.clamp(150, BOX.w, W * (BOX.w / 1440)) / BOX.w
-  // ponto da tela que fica parado durante a expansão
-  const P = { x: W / 2, y: H / 2 - (BOX.h / 2 - ORIGIN.y) * s0 }
-  const s1 =
-    1.15 *
-    Math.max(P.y / HALF_THICKNESS, (H - P.y + (BOTTOM_SLOPE * W) / 2) / HALF_THICKNESS, W / 2 / ORIGIN.x)
-  return { s0, s1, P }
+  return symbolLayout(W, H, gsap.utils.clamp(150, BOX.w, W * (BOX.w / 1440)))
 }
 
 function setTransform(P, s) {
-  const tx = P.x - ORIGIN.x * s
-  const ty = P.y - ORIGIN.y * s
-  const t = `translate(${tx} ${ty}) scale(${s}) translate(${-BOX.x} ${-BOX.y})`
+  const t = symbolTransform(P, s)
   symbolGroup.value?.setAttribute('transform', t)
   holeGroup.value?.setAttribute('transform', t)
 }
@@ -107,6 +91,9 @@ onMounted(() => {
     tl.to(state, { fill: 1, duration: 0.45, ease: 'power2.out', onUpdate: () => setFill(state.fill) })
     // Troca o símbolo desenhado pela janela (mesmo branco: a troca não aparece).
     tl.call(() => {
+      // A janela sempre abre no topo da hero, mesmo se a página tiver rolado
+      // durante o loader (no celular, o overflow: hidden nem sempre segura o toque).
+      window.scrollTo(0, 0)
       holeGroup.value.style.display = ''
       symbolGroup.value.style.display = 'none'
       expanding = true
