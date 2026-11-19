@@ -2,6 +2,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { site } from '../../config/site'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
 import BaseButton from '../ui/BaseButton.vue'
@@ -14,19 +15,61 @@ const mobileBars = [34, 21, 46, 60, 72]
 const root = ref(null)
 let ctx
 
+// Onda: cada coluna oscila em torno da sua altura base, com a fase
+// deslocada pela posição. A forma (queda na 2ª, depois crescimento)
+// continua legível porque a amplitude é pequena perto das diferenças.
+const WAVE = {
+  amplitude: 4, // pontos percentuais da altura da hero
+  period: 4.5, // segundos por ciclo
+  phase: 0.7, // defasagem entre colunas (rad)
+  rampIn: 1.2, // segundos para a onda atingir a amplitude total
+}
+
 onMounted(() => {
   if (prefersReducedMotion()) return
+
+  const bars = [...root.value.querySelectorAll('[data-bar]')].map((el) => ({
+    el,
+    base: Number(el.dataset.h),
+    index: Number(el.dataset.i),
+  }))
+
+  let visible = true
+  let waveStart = null
+
+  const tick = (time) => {
+    if (!visible || waveStart === null) return
+    const t = time - waveStart
+    const amp = WAVE.amplitude * Math.min(1, t / WAVE.rampIn)
+    const w = (2 * Math.PI) / WAVE.period
+    for (const { el, base, index } of bars) {
+      // seno começa em 0: entra na onda sem salto
+      el.style.height = `${base + amp * Math.sin(w * t - index * WAVE.phase)}%`
+    }
+  }
+
   ctx = gsap.context(() => {
-    // Revela de baixo para cima com clip-path: não mexe na altura em %
-    // (continua responsiva) nem distorce a borda de 1px.
+    // Entrada: revela de baixo para cima com clip-path (não distorce a borda de 1px).
     gsap.from('[data-bar]', {
       clipPath: 'inset(100% 0% 0% 0%)',
       clearProps: 'clipPath',
       duration: 1.1,
       ease: 'power3.out',
       stagger: 0.08,
+      onComplete: () => (waveStart = gsap.ticker.time),
+    })
+
+    // Só anima enquanto a hero está na tela.
+    ScrollTrigger.create({
+      trigger: root.value,
+      start: 'top bottom',
+      end: 'bottom top',
+      onToggle: (self) => (visible = self.isActive),
     })
   }, root.value)
+
+  gsap.ticker.add(tick)
+  ctx.add(() => () => gsap.ticker.remove(tick))
 })
 
 onBeforeUnmount(() => ctx?.revert())
@@ -41,10 +84,10 @@ onBeforeUnmount(() => ctx?.revert())
   >
     <!-- Gráfico de colunas -->
     <div class="pointer-events-none absolute inset-0 -z-10 hidden grid-cols-7 items-end md:grid" aria-hidden="true">
-      <div v-for="(h, i) in desktopBars" :key="i" data-bar class="border border-preto/12" :style="{ height: `${h}%` }" />
+      <div v-for="(h, i) in desktopBars" :key="i" :data-h="h" :data-i="i" data-bar class="border border-preto/12" :style="{ height: `${h}%` }" />
     </div>
     <div class="pointer-events-none absolute inset-0 -z-10 grid grid-cols-5 items-end md:hidden" aria-hidden="true">
-      <div v-for="(h, i) in mobileBars" :key="i" data-bar class="border border-preto/12" :style="{ height: `${h}%` }" />
+      <div v-for="(h, i) in mobileBars" :key="i" :data-h="h" :data-i="i" data-bar class="border border-preto/12" :style="{ height: `${h}%` }" />
     </div>
 
     <h1
