@@ -5,6 +5,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { site } from '../../config/site'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
+import { introStart } from '../../composables/useIntro'
 import BaseButton from '../ui/BaseButton.vue'
 import VArrowField from '../ui/VArrowField.vue'
 
@@ -72,15 +73,28 @@ onMounted(() => {
   }
 
   ctx = gsap.context(() => {
-    // Entrada: revela de baixo para cima com clip-path (não distorce a borda de 1px).
-    gsap.from('[data-bar]', {
-      clipPath: 'inset(100% 0% 0% 0%)',
-      clearProps: 'clipPath',
-      duration: 1.1,
-      ease: 'power3.out',
-      stagger: 0.08,
-      onComplete: () => (waveStart = gsap.ticker.time),
-    })
+    // Entrada: começa quando o símbolo do loader começa a expandir.
+    const intro = gsap.timeline({ paused: true })
+    // Colunas: revelam de baixo para cima com clip-path (não distorce a borda de 1px).
+    intro.from(
+      '[data-bar]',
+      {
+        clipPath: 'inset(100% 0% 0% 0%)',
+        clearProps: 'clipPath',
+        duration: 1.1,
+        ease: 'power3.out',
+        stagger: 0.08,
+        onComplete: () => (waveStart = gsap.ticker.time),
+      },
+      0.3,
+    )
+    // Título e rodapé da hero sobem com fade.
+    intro.from(
+      '[data-intro]',
+      { opacity: 0, y: 48, duration: 1.1, ease: 'power3.out', stagger: 0.12, clearProps: 'opacity,transform' },
+      0.5,
+    )
+    introStart.then(() => intro.play())
 
     // Só anima enquanto a hero está na tela.
     ScrollTrigger.create({
@@ -119,12 +133,13 @@ onBeforeUnmount(() => ctx?.revert())
 
     <h1
       id="hero-titulo"
+      data-intro
       class="text-hero mt-auto pt-32 text-preto md:absolute md:inset-x-0 md:top-1/2 md:mx-auto md:mt-0 md:max-w-[1100px] md:-translate-y-1/2 md:pt-0 md:text-center"
     >
       Redes sociais que <br class="hidden md:inline" />fazem sua marca <br class="hidden md:inline" />crescer.
     </h1>
 
-    <div class="mt-8 mb-10 flex flex-col-reverse items-start gap-6 md:mt-auto md:mb-[60px] md:flex-row md:items-center">
+    <div data-intro class="mt-8 mb-10 flex flex-col-reverse items-start gap-6 md:mt-auto md:mb-[60px] md:flex-row md:items-center">
       <BaseButton :href="site.whatsappUrl" label="Solicitar orçamento" />
       <p class="text-corpo max-w-[380px] text-preto/65">
         Gestão de redes sociais, conteúdo e estratégia para pequenas e médias empresas da região.

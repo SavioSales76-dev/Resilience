@@ -2,6 +2,7 @@ import { onMounted, onBeforeUnmount } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
+import { introEnd, isIntroEnded } from './useIntro'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -23,6 +24,11 @@ export function useSmoothScroll() {
       tick = (time) => lenis.raf(time * 1000)
       gsap.ticker.add(tick)
       gsap.ticker.lagSmoothing(0)
+      // Sem rolagem enquanto o loader estiver na tela.
+      if (!isIntroEnded()) {
+        lenis.stop()
+        introEnd.then(() => lenis.start())
+      }
     }
 
     document.fonts.ready.then(() => ScrollTrigger.refresh())

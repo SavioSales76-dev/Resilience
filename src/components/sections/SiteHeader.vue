@@ -1,6 +1,9 @@
 <!-- Figma: Hero → "Nav" (76:30) -->
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import gsap from 'gsap'
+import { prefersReducedMotion } from '../../composables/useSmoothScroll'
+import { introStart } from '../../composables/useIntro'
 import { site } from '../../config/site'
 import AppLogo from '../ui/AppLogo.vue'
 import BaseButton from '../ui/BaseButton.vue'
@@ -9,11 +12,19 @@ import InstagramIcon from '../icons/InstagramIcon.vue'
 import MenuIcon from '../icons/MenuIcon.vue'
 
 const menuOpen = ref(false)
+const nav = ref(null)
+
+// Entrada junto com a hero, quando o loader começa a expandir.
+onMounted(() => {
+  if (prefersReducedMotion()) return
+  const tween = gsap.from(nav.value, { opacity: 0, y: -16, duration: 0.9, ease: 'power3.out', delay: 0.7, paused: true, clearProps: 'opacity,transform' })
+  introStart.then(() => tween.restart(true)) // true: respeita o delay
+})
 </script>
 
 <template>
   <header class="absolute inset-x-0 top-5 z-20 px-gutter">
-    <nav class="flex items-center justify-between gap-4" aria-label="Principal">
+    <nav ref="nav" class="flex items-center justify-between gap-4" aria-label="Principal">
       <AppLogo />
 
       <ul class="hidden items-center gap-8 lg:flex">
