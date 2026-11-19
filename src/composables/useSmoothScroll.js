@@ -6,6 +6,14 @@ import { introEnd, isIntroEnded } from './useIntro'
 
 gsap.registerPlugin(ScrollTrigger)
 
+let lenisInstance = null
+
+// Rola até uma posição: suave com Lenis, nativo sem ele.
+export function scrollToY(y) {
+  if (lenisInstance) lenisInstance.scrollTo(y, { duration: 1.6 })
+  else window.scrollTo({ top: y, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+}
+
 export const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -20,6 +28,7 @@ export function useSmoothScroll() {
 
     if (!prefersReducedMotion() && !isTouch) {
       lenis = new Lenis({ lerp: 0.1 })
+      lenisInstance = lenis
       lenis.on('scroll', ScrollTrigger.update)
       tick = (time) => lenis.raf(time * 1000)
       gsap.ticker.add(tick)
@@ -37,6 +46,7 @@ export function useSmoothScroll() {
   onBeforeUnmount(() => {
     if (tick) gsap.ticker.remove(tick)
     lenis?.destroy()
+    lenisInstance = null
     ScrollTrigger.getAll().forEach((t) => t.kill())
   })
 

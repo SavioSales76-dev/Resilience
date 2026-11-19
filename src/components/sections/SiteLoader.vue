@@ -107,6 +107,9 @@ onMounted(() => {
     tl.to(state, { fill: 1, duration: 0.45, ease: 'power2.out', onUpdate: () => setFill(state.fill) })
     // Troca o símbolo desenhado pela janela (mesmo branco: a troca não aparece).
     tl.call(() => {
+      // A janela sempre abre no topo da hero, mesmo se a página tiver rolado
+      // durante o loader (no celular, o overflow: hidden nem sempre segura o toque).
+      window.scrollTo(0, 0)
       holeGroup.value.style.display = ''
       symbolGroup.value.style.display = 'none'
       expanding = true

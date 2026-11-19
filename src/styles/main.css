@@ -76,3 +76,10 @@ html.lenis body {
   line-height: 1;
   letter-spacing: -0.02em;
 }
+@utility text-manifesto {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(30px, 3.9vw, 56px);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}

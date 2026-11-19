@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue'
 import gsap from 'gsap'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
 import { introStart } from '../../composables/useIntro'
+import { goToAnchor } from '../../composables/useAnchors'
 import { site } from '../../config/site'
 import AppLogo from '../ui/AppLogo.vue'
 import BaseButton from '../ui/BaseButton.vue'
@@ -13,6 +14,11 @@ import MenuIcon from '../icons/MenuIcon.vue'
 import RollText from '../ui/RollText.vue'
 
 const menuOpen = ref(false)
+
+function onNav(event, href) {
+  menuOpen.value = false
+  if (goToAnchor(href.slice(1))) event.preventDefault()
+}
 const nav = ref(null)
 
 // Entrada junto com a hero, quando o loader começa a expandir.
@@ -24,7 +30,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <header class="absolute inset-x-0 top-5 z-20 px-gutter">
+  <header role="banner" class="absolute inset-x-0 top-5 z-20 px-gutter">
     <nav ref="nav" class="flex items-center justify-between gap-4" aria-label="Principal">
       <AppLogo />
 
@@ -35,6 +41,7 @@ onMounted(() => {
             class="text-nav text-preto/70 transition-colors hover:text-preto"
             :class="{ 'font-medium text-preto': i === 0 }"
             :aria-current="i === 0 ? 'page' : undefined"
+            @click="onNav($event, item.href)"
           ><RollText :text="item.label" /></a>
         </li>
       </ul>
@@ -68,7 +75,7 @@ onMounted(() => {
       class="mt-3 flex flex-col rounded-btn border border-preto/12 bg-branco p-2 lg:hidden"
     >
       <li v-for="item in site.nav" :key="item.href">
-        <a :href="item.href" class="block px-3 py-3 text-nav text-preto/80" @click="menuOpen = false">{{ item.label }}</a>
+        <a :href="item.href" class="block px-3 py-3 text-nav text-preto/80" @click="onNav($event, item.href)">{{ item.label }}</a>
       </li>
     </ul>
   </header>
