@@ -1,7 +1,7 @@
 <!--
   Cena fixa (pin) que liga a hero ao Manifesto (seção Sobre), controlada pelo scroll:
   1. O título e o rodapé da hero saem; as colunas crescem, uma a uma, até cobrir a tela.
-  2. A hero inteira (com o header) sobe e sai pelo topo, revelando o Manifesto,
+  2. A hero inteira sobe e sai pelo topo, revelando o Manifesto,
      que já está parado embaixo dela.
   3. Text scroll: as palavras do Manifesto passam de cinza para preto, na ordem
      de leitura; "voltar mais forte" vira azul.
@@ -16,7 +16,6 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
 import { registerAnchor } from '../../composables/useAnchors'
-import SiteHeader from './SiteHeader.vue'
 import HeroSection from './HeroSection.vue'
 import ManifestoSection from './ManifestoSection.vue'
 
@@ -125,9 +124,8 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="scene" class="relative" :class="animated && 'h-svh min-h-[640px] overflow-hidden'">
-    <!-- hero + header: camada de cima, que sai pelo topo -->
+    <!-- hero: camada de cima, que sai pelo topo -->
     <div ref="heroLayer" class="relative z-10">
-      <SiteHeader />
       <HeroSection ref="hero" />
     </div>
     <!-- Manifesto: parado embaixo da hero durante a cena -->
