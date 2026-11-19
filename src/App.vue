@@ -4,6 +4,7 @@ import { useSmoothScroll } from './composables/useSmoothScroll'
 import IntroScene from './components/sections/IntroScene.vue'
 import SiteLoader from './components/sections/SiteLoader.vue'
 import CasesSection from './components/sections/CasesSection.vue'
+import ContatoSection from './components/sections/ContatoSection.vue'
 
 useSmoothScroll()
 </script>
@@ -15,6 +16,7 @@ useSmoothScroll()
       <!-- header, hero e Manifesto: cena fixa ligada ao scroll -->
       <IntroScene />
       <CasesSection />
+      <ContatoSection />
     </main>
   </MotionConfig>
 </template>
