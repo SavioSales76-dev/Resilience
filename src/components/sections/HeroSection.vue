@@ -16,12 +16,11 @@ const root = ref(null)
 let ctx
 
 // Onda: cada coluna oscila em torno da sua altura base, com a fase
-// deslocada pela posição. A forma (queda na 2ª, depois crescimento)
-// continua legível porque a amplitude é pequena perto das diferenças.
+// deslocada pela posição, criando uma onda que corre da esquerda para a direita.
 const WAVE = {
-  amplitude: 4, // pontos percentuais da altura da hero
-  period: 4.5, // segundos por ciclo
-  phase: 0.7, // defasagem entre colunas (rad)
+  amplitude: 10, // pontos percentuais da altura da hero
+  period: 3.6, // segundos por ciclo
+  phase: 0.9, // defasagem entre colunas (rad): ~1 comprimento de onda nas 7 colunas
   rampIn: 1.2, // segundos para a onda atingir a amplitude total
 }
 
