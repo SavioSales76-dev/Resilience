@@ -72,6 +72,9 @@ function buildSymbol() {
   tl.fromTo(state, { s: 0.0001 }, { s: () => layout().s0, duration: 0.25, ease: 'back.out(1.6)', onUpdate: update })
   // ...e cresce até cobrir a tela; acelera no fim (power3.in)
   tl.to(state, { s: () => layout().s1, duration: 1.75, ease: 'power3.in', onUpdate: update })
+  // Coberta a tela, o fundo da seção vira azul: nenhuma borda de 1 px escapa na
+  // emenda com os Cases (o símbolo gigante tem antialias nas bordas).
+  tl.set(root.value, { backgroundColor: COR_DESTAQUE, attr: { 'data-header-tema': 'escuro' } })
   return tl
 }
 
@@ -82,7 +85,9 @@ defineExpose({ getWords, buildSymbol, COR_APAGADA })
 </script>
 
 <template>
-  <section ref="root" id="sobre" aria-labelledby="sobre-titulo" class="relative flex h-svh min-h-[640px] items-center justify-center bg-branco px-gutter">
+  <!-- data-header-tema começa "claro": a timeline do símbolo troca para "escuro" no fim
+       e precisa de um valor anterior para voltar quando a rolagem sobe -->
+  <section ref="root" id="sobre" data-header-tema="claro" aria-labelledby="sobre-titulo" class="relative flex h-svh min-h-[640px] items-center justify-center bg-branco px-gutter">
     <div class="absolute inset-x-gutter top-0 h-px bg-preto/10" aria-hidden="true" />
 
     <div class="flex max-w-[1120px] flex-col items-center gap-8 text-center md:gap-10">

@@ -10,7 +10,7 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import gsap from 'gsap'
 import { prefersReducedMotion } from '../../composables/useSmoothScroll'
-import { endIntro, startIntro } from '../../composables/useIntro'
+import { endIntro, revealIntro, startIntro } from '../../composables/useIntro'
 import { SYMBOL_BOX, SYMBOL_PATHS, symbolLayout, symbolTransform } from '../ui/symbolGeometry'
 
 // Geometria compartilhada com a transição Manifesto → Cases.
@@ -18,7 +18,8 @@ const PATHS = SYMBOL_PATHS
 const BOX = SYMBOL_BOX
 
 const FILL_EMPTY_OPACITY = 0.16 // símbolo "vazio"
-const MIN_FILL_TIME = 1.3 // s: tempo mínimo enchendo, mesmo se a página carregar antes
+const MIN_FILL_TIME = 1.0 // s: tempo mínimo enchendo, mesmo se a página carregar antes
+const EXPAND_TIME = 1.0 // s: expansão do símbolo até cobrir a tela
 
 const visible = ref(!prefersReducedMotion())
 const symbolGroup = ref(null)
@@ -88,7 +89,7 @@ onMounted(() => {
   // 2. Com a página pronta (e o tempo mínimo cumprido): completa, vira janela e expande.
   Promise.all([document.fonts.ready, pageLoaded(), fillToMin.then()]).then(() => {
     tl = gsap.timeline({ onComplete: finish })
-    tl.to(state, { fill: 1, duration: 0.45, ease: 'power2.out', onUpdate: () => setFill(state.fill) })
+    tl.to(state, { fill: 1, duration: 0.3, ease: 'power2.out', onUpdate: () => setFill(state.fill) })
     // Troca o símbolo desenhado pela janela (mesmo branco: a troca não aparece).
     tl.call(() => {
       // A janela sempre abre no topo da hero, mesmo se a página tiver rolado
@@ -101,9 +102,14 @@ onMounted(() => {
     })
     tl.to(state, {
       scale: () => s1,
-      duration: 1.4,
-      ease: 'power3.inOut',
-      onUpdate: () => setTransform(P, state.scale),
+      duration: EXPAND_TIME,
+      // acelera até o fim: sem a "cauda" lenta com a tela já quase toda revelada
+      ease: 'power2.in',
+      onUpdate: () => {
+        setTransform(P, state.scale)
+        // s1 tem 15% de folga: em s1 / 1,15 a janela já cobre a tela inteira
+        if (state.scale >= s1 / 1.15) revealIntro()
+      },
     })
   })
 

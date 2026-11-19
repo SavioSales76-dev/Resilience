@@ -25,6 +25,38 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Nenhuma rolagem lateral, nem por 1 px de arredondamento (ex.: Windows com escala
+     de 125%, em que a cena fixa pode ficar 1 px mais larga que a área visível).
+     clip, e não hidden: hidden transformaria o body num contêiner de rolagem e
+     quebraria o footer sticky e os pins do ScrollTrigger. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  /* Barra de rolagem nas cores da marca: polegar azul sobre trilho branco frio.
+     scrollbar-color/width: Firefox e Chrome/Edge 121+ (que então ignoram as regras
+     ::-webkit-scrollbar). ::-webkit-scrollbar: Safari e Chromium mais antigos. */
+  html {
+    scrollbar-color: var(--color-azul) var(--color-branco);
+    scrollbar-width: thin;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-branco);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-azul);
+    border: 2px solid var(--color-branco);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-preto);
+  }
+
   body {
     background: var(--color-branco);
     color: var(--color-preto);
@@ -82,4 +114,32 @@ html.lenis body {
   font-size: clamp(30px, 3.9vw, 56px);
   line-height: 1.18;
   letter-spacing: -0.02em;
+}
+
+@utility text-h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(40px, 5.6vw, 80px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+@utility text-h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(24px, 2.2vw, 32px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+/* Site/Mono Label: rótulos, etiquetas, legendas */
+@utility text-label {
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+
+/* Site/Nav (16 px): links do footer */
+@utility text-nav-footer {
+  font-size: 16px;
+  line-height: 1;
+  letter-spacing: -0.005em;
 }
