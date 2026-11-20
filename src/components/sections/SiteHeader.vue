@@ -142,15 +142,13 @@ onBeforeUnmount(() => {
       </ul>
 
       <div class="flex items-center gap-2">
-        <IconButton :href="site.instagramUrl" label="Instagram da Resilience" :tema="tema" v-slot="{ active }">
-          <InstagramIcon :size="20" :active="active" />
-        </IconButton>
-        <span class="hidden sm:contents">
+        <!-- Desktop: botões na barra. Abaixo de lg, eles ficam dentro do menu hambúrguer. -->
+        <div class="hidden items-center gap-2 lg:flex">
+          <IconButton :href="site.instagramUrl" label="Instagram da Resilience" :tema="tema" v-slot="{ active }">
+            <InstagramIcon :size="20" :active="active" />
+          </IconButton>
           <BaseButton :href="site.whatsappUrl" label="Contato" :tema="tema" />
-        </span>
-        <span class="contents sm:hidden">
-          <BaseButton :href="site.whatsappUrl" label="Contato pelo WhatsApp" tipo="whatsapp" compacto :tema="tema" />
-        </span>
+        </div>
         <button
           type="button"
           class="inline-flex size-12 items-center justify-center rounded-btn border transition-colors duration-300 lg:hidden"
@@ -165,20 +163,38 @@ onBeforeUnmount(() => {
       </div>
     </nav>
 
-    <ul
+    <!-- Menu hambúrguer (abaixo de lg): links + os botões do header -->
+    <div
       v-show="menuOpen"
       id="menu-mobile"
       class="mt-3 flex flex-col rounded-btn border p-2 lg:hidden"
       :class="tema === 'escuro' ? 'border-branco/20 bg-azul' : 'border-preto/12 bg-branco'"
     >
-      <li v-for="item in site.nav" :key="item.href">
-        <a
-          :href="item.href"
-          class="block px-3 py-3 text-nav"
-          :class="tema === 'escuro' ? 'text-branco/85' : 'text-preto/80'"
-          @click="onNav($event, item.href)"
-        >{{ item.label }}</a>
-      </li>
-    </ul>
+      <ul class="flex flex-col">
+        <li v-for="item in site.nav" :key="item.href">
+          <a
+            :href="item.href"
+            class="block px-3 py-3 text-nav"
+            :class="tema === 'escuro' ? 'text-branco/85' : 'text-preto/80'"
+            @click="onNav($event, item.href)"
+          >{{ item.label }}</a>
+        </li>
+      </ul>
+      <div
+        class="mt-2 flex items-center gap-2 border-t px-1 pt-3 pb-1"
+        :class="tema === 'escuro' ? 'border-branco/20' : 'border-preto/10'"
+      >
+        <IconButton :href="site.instagramUrl" label="Instagram da Resilience" :tema="tema" v-slot="{ active }">
+          <InstagramIcon :size="20" :active="active" />
+        </IconButton>
+        <BaseButton
+          :href="site.whatsappUrl"
+          label="Chamar no WhatsApp"
+          tipo="whatsapp"
+          :tema="tema"
+          class="flex-1 justify-between"
+        />
+      </div>
+    </div>
   </header>
 </template>
