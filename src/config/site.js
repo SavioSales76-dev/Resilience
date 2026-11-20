@@ -1,12 +1,14 @@
 // Conteúdo pendente: trocar os placeholders quando o cliente enviar.
-const WHATSAPP_NUMBER = '55DDDNUMERO' // TODO: número real
+// Número do WhatsApp: código do país (55) + DDD + número. Pode ter espaço ou traço:
+// o link usa só os dígitos.
+const WHATSAPP_NUMBER = '55 88 99291-6126'
 const WHATSAPP_TEXT = 'Olá! Vim pelo site e quero saber mais sobre a gestão de redes.'
 
 export const site = {
-  whatsappUrl: `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_TEXT)}`,
+  whatsappUrl: `https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodeURIComponent(WHATSAPP_TEXT)}`,
   instagramUrl: 'https://instagram.com/resilience', // TODO: @ real
   instagramHandle: '@resilience', // TODO
-  phoneLabel: '(00) 00000-0000', // TODO
+  phoneLabel: '(88) 99291-6126',
   atuacao: ['Atendimento regional', 'Seg. a sex., horário comercial'], // TODO: provisório
   nav: [
     { label: 'Início', href: '#inicio' },
