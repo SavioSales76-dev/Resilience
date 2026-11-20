@@ -6,8 +6,9 @@ const WHATSAPP_TEXT = 'Olá! Vim pelo site e quero saber mais sobre a gestão de
 
 export const site = {
   whatsappUrl: `https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodeURIComponent(WHATSAPP_TEXT)}`,
-  instagramUrl: 'https://instagram.com/resilience', // TODO: @ real
-  instagramHandle: '@resilience', // TODO
+  // Sem os parâmetros de rastreio do QR code (?hvrq=…&utm_source=qr).
+  instagramUrl: 'https://www.instagram.com/somosresilience/',
+  instagramHandle: '@somosresilience',
   phoneLabel: '(88) 99291-6126',
   atuacao: ['Atendimento regional', 'Seg. a sex., horário comercial'], // TODO: provisório
   nav: [
