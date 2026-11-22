@@ -48,8 +48,13 @@ const WAVE = {
   rampIn: 1.2, // segundos para a onda atingir a amplitude total
 }
 
-// Colunas: `grow` (0–1) é controlado pela IntroScene no scroll; 1 = altura da tela toda.
+// Colunas. Desempenho: as colunas têm a altura da hero inteira e só se movem
+// com transform (translateY). Mudar a altura (height) a cada quadro recalculava
+// o layout da página toda; transform é feito pela placa de vídeo.
+// - rise (0–1): entrada, quando o loader expande
+// - grow (0–1): controlado pela IntroScene no scroll; 1 = altura da tela toda
 let bars = []
+let active = [] // só as colunas do layout visível (desktop 7 / mobile 5)
 let ticking = true // a IntroScene desliga quando a hero já saiu da tela
 
 onMounted(() => {
@@ -60,37 +65,39 @@ onMounted(() => {
     base: Number(el.dataset.h),
     index: Number(el.dataset.i),
     grow: 0,
+    rise: 0,
   }))
+  const pickActive = () => (active = bars.filter((b) => b.el.offsetParent !== null))
+  pickActive()
+  const desktop = window.matchMedia('(min-width: 768px)')
+  desktop.addEventListener('change', pickActive)
 
   let waveStart = null
 
   const tick = (time) => {
     if (!ticking) return
-    const growing = bars.some((b) => b.grow > 0)
-    if (waveStart === null && !growing) return // antes da entrada: alturas do CSS
     const t = waveStart === null ? 0 : time - waveStart
     const amp = waveStart === null ? 0 : WAVE.amplitude * Math.min(1, t / WAVE.rampIn)
     const w = (2 * Math.PI) / WAVE.period
-    for (const { el, base, index, grow } of bars) {
+    for (const bar of active) {
       // seno começa em 0: entra na onda sem salto
-      const wave = base + amp * Math.sin(w * t - index * WAVE.phase)
-      el.style.height = `${wave + (100 - wave) * grow}%`
+      const wave = bar.base + amp * Math.sin(w * t - bar.index * WAVE.phase)
+      const h = (wave + (100 - wave) * bar.grow) * bar.rise
+      bar.el.style.transform = `translate3d(0, ${100 - h}%, 0)`
     }
   }
 
   ctx = gsap.context(() => {
-    // Entrada das colunas: começa quando o símbolo do loader começa a expandir
-    // (elas sobem dentro da "janela" do símbolo).
+    // Entrada das colunas: sobem quando o símbolo do loader começa a expandir
+    // (dentro da "janela" do símbolo), uma a uma.
     const intro = gsap.timeline({ paused: true })
-    // Colunas: revelam de baixo para cima com clip-path (não distorce a borda de 1px).
-    intro.from(
-      '[data-bar]',
+    intro.to(
+      bars,
       {
-        clipPath: 'inset(100% 0% 0% 0%)',
-        clearProps: 'clipPath',
+        rise: 1,
         duration: 1.1,
         ease: 'power3.out',
-        stagger: 0.08,
+        stagger: (i, bar) => bar.index * 0.08,
         onComplete: () => (waveStart = gsap.ticker.time),
       },
       0.3,
@@ -111,7 +118,10 @@ onMounted(() => {
   }, root.value)
 
   gsap.ticker.add(tick)
-  ctx.add(() => () => gsap.ticker.remove(tick))
+  ctx.add(() => () => {
+    gsap.ticker.remove(tick)
+    desktop.removeEventListener('change', pickActive)
+  })
 })
 
 onBeforeUnmount(() => ctx?.revert())
@@ -136,10 +146,10 @@ defineExpose({
 
     <!-- Gráfico de colunas -->
     <div class="pointer-events-none absolute inset-0 -z-10 hidden grid-cols-7 items-end md:grid" aria-hidden="true">
-      <div v-for="(h, i) in desktopBars" :key="i" :data-h="h" :data-i="i" data-bar class="border border-preto/12 bg-branco" :style="{ height: `${h}%` }" />
+      <div v-for="(h, i) in desktopBars" :key="i" :data-h="h" :data-i="i" data-bar class="h-full border border-preto/12 bg-branco will-change-transform" :style="{ transform: `translateY(${100 - h}%)` }" />
     </div>
     <div class="pointer-events-none absolute inset-0 -z-10 grid grid-cols-5 items-end md:hidden" aria-hidden="true">
-      <div v-for="(h, i) in mobileBars" :key="i" :data-h="h" :data-i="i" data-bar class="border border-preto/12 bg-branco" :style="{ height: `${h}%` }" />
+      <div v-for="(h, i) in mobileBars" :key="i" :data-h="h" :data-i="i" data-bar class="h-full border border-preto/12 bg-branco will-change-transform" :style="{ transform: `translateY(${100 - h}%)` }" />
     </div>
 
     <h1

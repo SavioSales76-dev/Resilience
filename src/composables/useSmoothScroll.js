@@ -5,6 +5,10 @@ import Lenis from 'lenis'
 import { introEnd, isIntroEnded } from './useIntro'
 
 gsap.registerPlugin(ScrollTrigger)
+// No celular, a barra de endereço aparece e some durante a rolagem e muda a altura
+// da janela: sem isto, cada vez o ScrollTrigger recalcularia todas as animações
+// no meio do scroll (travadas e pulos).
+ScrollTrigger.config({ ignoreMobileResize: true })
 
 let lenisInstance = null
 

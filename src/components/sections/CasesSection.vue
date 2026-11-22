@@ -56,18 +56,23 @@ onMounted(() => {
 
     mm = gsap.matchMedia()
     // Desktop: expansão + empilhamento. Mobile: só expansão.
+    // Desempenho: tudo por transform e opacity (feitos pela placa de vídeo).
+    // - expansão: o card já tem o tamanho final e cresce por escala (0,6 → 1),
+    //   em vez de animar largura/altura, que recalculava o layout a cada quadro;
+    // - P&B → cor: uma cópia em P&B por cima, que some (opacity), em vez de animar filter;
+    // - empilhamento: escala num invólucro e uma camada preta (opacity) no lugar de
+    //   filter: brightness, que redesenhava o card inteiro.
     mm.add({ desktop: '(min-width: 768px)', mobile: '(max-width: 767.98px)' }, ({ conditions }) => {
-      const margin = conditions.desktop ? 48 : 32 // 24 px de cada lado / 16 px no mobile
       const slots = gsap.utils.toArray('[data-slot]', root.value)
+      const START = 0.6 // 60% do tamanho final
 
       slots.forEach((slot, i) => {
         const card = slot.querySelector('[data-card]')
-        const media = slot.querySelector('[data-media]')
+        const pb = slot.querySelector('[data-pb]')
         const legenda = slot.querySelector('[data-legenda]')
-        const finalW = () => slot.clientWidth - margin
-        const finalH = () => slot.clientHeight
 
-        // Expansão: de 60% a 100%, cantos de 6vw a 16 px.
+        // Expansão: de 60% a 100%, cantos de 6vw a 16 px. Com a escala, o canto visível
+        // é raio × escala: começa em 6vw ÷ 0,6 para aparecer com 6vw.
         const expand = {
           ...st,
           trigger: slot,
@@ -77,15 +82,13 @@ onMounted(() => {
         }
         gsap.fromTo(
           card,
-          { width: () => finalW() * 0.6, height: () => finalH() * 0.6, borderRadius: () => window.innerWidth * 0.06 },
-          { width: finalW, height: finalH, borderRadius: 16, ease: 'none', scrollTrigger: expand },
+          { scale: START, borderRadius: () => (window.innerWidth * 0.06) / START },
+          { scale: 1, borderRadius: 16, ease: 'none', force3D: true, scrollTrigger: expand },
         )
-        // Imagem: P&B → cor.
-        gsap.fromTo(
-          media,
-          { filter: 'saturate(0)' },
-          { filter: 'saturate(1)', ease: 'none', scrollTrigger: { ...expand, start: 'top 70%' } },
-        )
+        // Imagem: P&B → cor (só quando há imagem; o placeholder não tem cor).
+        if (pb) {
+          gsap.fromTo(pb, { opacity: 1 }, { opacity: 0, ease: 'none', scrollTrigger: { ...expand, start: 'top 70%' } })
+        }
         // Legenda: aparece no fim da expansão.
         gsap.fromTo(
           legenda,
@@ -93,19 +96,13 @@ onMounted(() => {
           { opacity: 1, y: 0, ease: 'none', scrollTrigger: { ...expand, start: conditions.desktop ? 'top 20%' : 'top 40%' } },
         )
 
-        // Empilhamento (desktop): o card de baixo encolhe e escurece.
+        // Empilhamento (desktop): o card de baixo encolhe (0,92) e escurece (preto a 50%
+        // por cima = brightness 0,5).
         if (conditions.desktop && i > 0) {
-          const prev = slots[i - 1].querySelector('[data-card]')
-          gsap.fromTo(
-            prev,
-            { scale: 1, filter: 'brightness(1)' },
-            {
-              scale: 0.92,
-              filter: 'brightness(0.5)',
-              ease: 'none',
-              scrollTrigger: { ...st, trigger: slot, start: 'top bottom', end: 'top 24px', scrub: 1 },
-            },
-          )
+          const prev = slots[i - 1]
+          const pilha = { ...st, trigger: slot, start: 'top bottom', end: 'top 24px', scrub: 1 }
+          gsap.fromTo(prev.querySelector('[data-pilha]'), { scale: 1 }, { scale: 0.92, ease: 'none', force3D: true, scrollTrigger: pilha })
+          gsap.fromTo(prev.querySelector('[data-sombra]'), { opacity: 0 }, { opacity: 0.5, ease: 'none', scrollTrigger: pilha })
         }
       })
     })
@@ -143,41 +140,57 @@ onBeforeUnmount(() => {
           data-slot
           class="-mx-gutter flex h-[70svh] items-center justify-center md:sticky md:top-6 md:h-[calc(100svh-48px)]"
         >
-          <article
-            data-card
-            class="relative h-full w-[calc(100%-32px)] overflow-hidden rounded-card bg-azul will-change-[width,height] md:w-[calc(100%-48px)]"
-          >
-            <!-- imagem (ou placeholder do Figma) -->
-            <div data-media class="absolute inset-0 bg-branco/16">
-              <img
-                v-if="item.image"
-                :src="item.image"
-                :alt="`Trabalho para ${item.name}`"
-                :loading="i === 0 ? 'eager' : 'lazy'"
-                class="size-full object-cover object-center"
-              />
-              <div v-else class="flex size-full flex-col items-center justify-center gap-2.5">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="9" cy="9" r="2" />
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                </svg>
-                <span class="text-label text-branco/60">Imagem do case 16:9</span>
-              </div>
-            </div>
-
-            <!-- legenda -->
-            <div
-              data-legenda
-              class="absolute inset-x-4 bottom-4 flex items-center justify-between gap-4 md:inset-x-8 md:bottom-7"
+          <!-- data-pilha: invólucro que encolhe no empilhamento (a escala da expansão fica no card) -->
+          <div data-pilha class="flex size-full items-center justify-center will-change-transform">
+            <article
+              data-card
+              class="relative h-full w-[calc(100%-32px)] overflow-hidden rounded-card bg-azul will-change-transform md:w-[calc(100%-48px)]"
             >
-              <div class="flex min-w-0 flex-wrap items-center gap-x-3.5 gap-y-2">
-                <h3 class="text-h3 whitespace-nowrap">{{ item.name }}</h3>
-                <span class="text-label rounded-btn border border-branco/35 px-2.5 py-1.5">{{ item.segment }}</span>
+              <!-- imagem (ou placeholder do Figma) -->
+              <div data-media class="absolute inset-0 bg-branco/16">
+                <template v-if="item.image">
+                  <img
+                    :src="item.image"
+                    :alt="`Trabalho para ${item.name}`"
+                    :loading="i === 0 ? 'eager' : 'lazy'"
+                    class="size-full object-cover object-center"
+                  />
+                  <!-- cópia em P&B por cima: some com o scroll (P&B → cor) -->
+                  <img
+                    data-pb
+                    :src="item.image"
+                    alt=""
+                    aria-hidden="true"
+                    :loading="i === 0 ? 'eager' : 'lazy'"
+                    class="absolute inset-0 size-full object-cover object-center grayscale will-change-[opacity]"
+                  />
+                </template>
+                <div v-else class="flex size-full flex-col items-center justify-center gap-2.5">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="9" cy="9" r="2" />
+                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                  </svg>
+                  <span class="text-label text-branco/60">Imagem do case 16:9</span>
+                </div>
               </div>
-              <NumberedButton :href="item.href" :numero="numero(i)" :label="`Ver o case ${item.name}`" />
-            </div>
-          </article>
+
+              <!-- legenda -->
+              <div
+                data-legenda
+                class="absolute inset-x-4 bottom-4 flex items-center justify-between gap-4 md:inset-x-8 md:bottom-7"
+              >
+                <div class="flex min-w-0 flex-wrap items-center gap-x-3.5 gap-y-2">
+                  <h3 class="text-h3 whitespace-nowrap">{{ item.name }}</h3>
+                  <span class="text-label rounded-btn border border-branco/35 px-2.5 py-1.5">{{ item.segment }}</span>
+                </div>
+                <NumberedButton :href="item.href" :numero="numero(i)" :label="`Ver o case ${item.name}`" />
+              </div>
+
+              <!-- escurece o card quando o próximo sobe por cima (empilhamento) -->
+              <div data-sombra class="pointer-events-none absolute inset-0 bg-preto opacity-0" aria-hidden="true" />
+            </article>
+          </div>
         </li>
       </ol>
     </div>

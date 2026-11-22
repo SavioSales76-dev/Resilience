@@ -59,9 +59,12 @@ function detectTheme() {
 // Verifica a cada 150 ms, e não só no evento de rolagem: a cena fixa acompanha a
 // rolagem com suavização (~1 s), então o azul do fim da transição pode mudar
 // depois que a rolagem já parou.
+// Desempenho: só verifica durante a rolagem e até 1,2 s depois dela (o tempo da
+// suavização); com a página parada, não faz nada.
 let lastCheck = 0
+let lastScroll = -Infinity
 const themeTick = (time) => {
-  if (time - lastCheck < 0.15) return
+  if (time - lastScroll > 1.2 || time - lastCheck < 0.15) return
   lastCheck = time
   detectTheme()
 }
@@ -93,6 +96,7 @@ onMounted(() => {
     if (y < TOPO || y < lastY - 2) show()
     else if (y > lastY + 2) hide()
     lastY = y
+    lastScroll = gsap.ticker.time
   }
   window.addEventListener('scroll', watcher, { passive: true })
   gsap.ticker.add(themeTick)
@@ -119,7 +123,7 @@ onBeforeUnmount(() => {
   <header
     ref="header"
     role="banner"
-    class="fixed inset-x-0 top-0 z-40 border-b px-gutter py-3 backdrop-blur-md transition-colors duration-300"
+    class="fixed inset-x-0 top-0 z-40 border-b px-gutter py-3 backdrop-blur-sm transition-colors duration-300 md:backdrop-blur-md"
     :class="tema === 'escuro' ? 'border-branco/10 bg-azul/70' : 'border-preto/6 bg-branco/70'"
     @focusin="show"
   >

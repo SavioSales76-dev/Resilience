@@ -1,9 +1,14 @@
 <!--
   Pattern de v-arrows subindo (Figma: Contato → "Pattern / v-arrows subindo", 112:49).
   Cada v-arrow nasce abaixo do container e sobe até sair pelo topo, em loop.
-  Rastro: enquanto sobe, ela deixa cópias no caminho (a cada ~0,95× a própria altura,
-  como no Figma). Cada cópia fica parada onde nasceu, encolhe e se apaga,
-  então ~4 ficam visíveis atrás dela.
+
+  Rastro denso: a v-arrow vai "deixando" cópias que encolhem e se apagam. Como ela sobe
+  em velocidade constante, a cópia a uma distância d dela tem sempre a mesma idade
+  (d ÷ velocidade), logo sempre a mesma opacidade e escala. Por isso o rastro é
+  desenhado uma vez, junto da v-arrow, e o conjunto inteiro se move num único
+  elemento por transform (feito pela placa de vídeo, sem redesenhar o SVG).
+  Antes eram ~15 animações de opacidade/escala por v-arrow, redesenhando a cada quadro.
+
   Com prefers-reduced-motion, fica tudo parado na posição `y`, com o rastro do Figma.
 -->
 <script setup>
@@ -19,7 +24,7 @@ const props = defineProps({
   arrows: { type: Array, required: true },
   // velocidade em px/s da menor (34px) e da maior (112px): as maiores, mais "perto", sobem mais rápido
   speed: { type: Array, default: () => [45, 110] },
-  // quantas cópias do rastro ficam visíveis ao mesmo tempo.
+  // quantas cópias formam o rastro.
   // Comprimento do rastro ≈ trailLength × TRAIL_SPACING alturas (14 × 0.15 ≈ 2,1).
   trailLength: { type: Number, default: 14 },
 })
@@ -31,10 +36,27 @@ const STATIC_TRAIL = V_ARROW_PATHS.slice(1)
 const ARROW_HEIGHT_UNITS = 56
 // × altura da v-arrow. Pequeno = rastro denso e contínuo (as cópias se sobrepõem).
 const TRAIL_SPACING = 0.15
-// Opacidade de cada cópia ao nascer. Baixa porque, com o rastro denso,
+// Opacidade da cópia mais nova. Baixa porque, com o rastro denso,
 // várias cópias se sobrepõem e as opacidades se somam.
 const TRAIL_START_OPACITY = 0.12
 const TRAIL_END_SCALE = 0.86 ** 4 // encolhe como a 4ª cópia do Figma
+
+// Cópias do rastro, da mais nova (k = 1) à mais velha. p = idade relativa (0–1).
+// Mesmas curvas de antes: opacidade e escala com power1.out ao longo da vida da cópia.
+const CENTER_X = V_ARROW_VIEWBOX.width / 2
+const trail = Array.from({ length: props.trailLength - 1 }, (_, i) => {
+  const k = i + 1
+  const p = k / props.trailLength
+  const eased = 1 - (1 - p) ** 2 // power1.out
+  const scale = 1 + (TRAIL_END_SCALE - 1) * eased
+  const y = k * TRAIL_SPACING * ARROW_HEIGHT_UNITS
+  return {
+    k,
+    opacity: +(TRAIL_START_OPACITY * (1 - eased)).toFixed(4),
+    // encolhe a partir do topo, no centro (como o transformOrigin '50% 0%' de antes)
+    transform: `translate(${CENTER_X} ${y.toFixed(2)}) scale(${scale.toFixed(4)}) translate(${-CENTER_X} 0)`,
+  }
+}).reverse() // as mais velhas primeiro, para a v-arrow e as mais novas ficarem por cima
 
 const root = ref(null)
 const reduced = ref(false)
@@ -50,68 +72,21 @@ function build() {
     const containerH = root.value.offsetHeight
     const loops = []
 
-    root.value.querySelectorAll('[data-v-arrow]').forEach((svg, i) => {
-      const box = svg.getBoundingClientRect()
+    root.value.querySelectorAll('[data-v-arrow]').forEach((el, i) => {
+      const box = el.getBoundingClientRect()
       if (!box.width) return // campo escondido (ex.: versão mobile no desktop)
 
-      const unitsPerPx = V_ARROW_VIEWBOX.width / box.width
-      const t = gsap.utils.clamp(0, 1, (Number(svg.dataset.w) - 34) / (112 - 34))
+      const t = gsap.utils.clamp(0, 1, (Number(el.dataset.w) - 34) / (112 - 34))
       const speed = gsap.utils.interpolate(props.speed[0], props.speed[1], t) // px/s
+      // Do pé do container (top: 100%) até a v-arrow e o rastro passarem do topo.
+      const travelPx = containerH + box.height + 16
 
-      // Do pé do container (top: 100%) até passar do topo, com folga para o rastro sumir.
-      const arrowPx = ARROW_HEIGHT_UNITS / unitsPerPx
-      const travelPx = containerH + arrowPx + 16
-      const duration = travelPx / speed
-
-      const main = svg.querySelector('[data-main]')
-      const ghosts = [...svg.querySelectorAll('[data-ghost]')]
-      const spacingUnits = TRAIL_SPACING * ARROW_HEIGHT_UNITS
-      // Cada cópia vive o tempo de a v-arrow andar `trailLength` espaçamentos.
-      const ghostLife = ((TRAIL_SPACING * arrowPx) / speed) * props.trailLength
-
-      const speedUnits = speed * unitsPerPx // unidades do viewBox por segundo
-
-      // Solta uma cópia na posição `y`; as cópias se revezam num pool.
-      // `age`: há quanto tempo a v-arrow passou por ali. Se o navegador perder
-      // quadros e várias cópias nascerem juntas, cada uma já começa com a
-      // idade certa e o degradê do rastro não se quebra.
-      let next = 0
-      const spawnAt = (y, age) => {
-        const ghost = ghosts[next]
-        next = (next + 1) % ghosts.length
-        gsap.killTweensOf(ghost)
-        gsap
-          .fromTo(
-            ghost,
-            { y, opacity: TRAIL_START_OPACITY, scale: 1, transformOrigin: '50% 0%' },
-            { opacity: 0, scale: TRAIL_END_SCALE, duration: ghostLife, ease: 'power1.out' },
-          )
-          .time(Math.min(age, ghostLife))
-      }
-
-      // Solta por distância percorrida (não por tempo): o espaçamento fica
-      // certo mesmo se o navegador perder quadros.
-      let lastY = null
       const rise = gsap.fromTo(
-        main,
+        el,
         { y: 0 },
-        {
-          y: -travelPx * unitsPerPx,
-          duration,
-          ease: 'none',
-          repeat: -1,
-          onUpdate: () => {
-            const y = gsap.getProperty(main, 'y')
-            if (lastY === null || y > lastY) lastY = y // início ou recomeço do loop
-            while (lastY - y >= spacingUnits) {
-              lastY -= spacingUnits
-              spawnAt(lastY, (lastY - y) / speedUnits)
-            }
-          },
-        },
+        { y: -travelPx, duration: travelPx / speed, ease: 'none', repeat: -1, force3D: true },
       )
       rise.progress((i * 0.618) % 1) // espalha as v-arrows ao longo do caminho
-
       loops.push(rise)
     })
 
@@ -155,17 +130,24 @@ onBeforeUnmount(() => {
       :data-w="a.w"
       :viewBox="`0 0 ${V_ARROW_VIEWBOX.width} ${V_ARROW_VIEWBOX.height}`"
       class="absolute h-auto -translate-x-1/2 overflow-visible"
+      :class="{ 'will-change-transform': !reduced }"
       :style="{ left: `${a.x}%`, top: reduced ? `${a.y}%` : '100%', width: widthFor(a.w), opacity: a.o }"
       fill="none"
     >
       <template v-if="reduced">
         <path v-for="p in STATIC_TRAIL" :key="p.id" :d="p.d" class="fill-azul" :fill-opacity="p.opacity" />
       </template>
-      <!-- pool de cópias do rastro (uma a mais que o visível, para a troca não piscar) -->
       <template v-else>
-        <path v-for="n in trailLength + 1" :key="`g${n}`" data-ghost :d="MAIN.d" class="fill-azul" opacity="0" />
+        <path
+          v-for="g in trail"
+          :key="g.k"
+          :d="MAIN.d"
+          class="fill-azul"
+          :fill-opacity="g.opacity"
+          :transform="g.transform"
+        />
       </template>
-      <path data-main :d="MAIN.d" class="fill-azul" />
+      <path :d="MAIN.d" class="fill-azul" />
     </svg>
   </div>
 </template>
